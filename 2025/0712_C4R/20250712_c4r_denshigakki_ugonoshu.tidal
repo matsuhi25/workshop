@@ -1,0 +1,298 @@
+-- テンポを設定します
+
+setcps 0.5
+
+setcps (130/60/4) -- BPM130に設定
+
+-- 空白の行を挟むと一ブロックです
+
+d1 $ sound "bd hh sd hh"
+
+d2 $ sound "bass1*4"
+
+-- 音を止めます
+
+hush 
+
+
+-- $ soundは、サンプルファイルを再生します. (シンセサイザーを鳴らすこともできます、説明はまたいずれ...)
+
+{-
+ SuperDirtのデフォルトサンプルは、
+ 1. SuperCollider -> "File"メニュー -> "Open User Support Directory"を押す
+ 2. SuperCollider関連ファイルが置いてあるフォルダが開かれます.
+    downloaded-quarks -> Dirt-Samples
+    ここにおいてあります
+-}
+
+
+-- sd:1は、sdフォルダの中の上から2番目のファイルを再生します。
+d1 $ sound "bd hh sd:1 hh" 
+
+-- :1なのに二番目かい！という感じですが...
+-- プログラムの世界では0,1,2と、先頭を0で数えがちです.
+
+
+
+-- マイナス二つでコメントを書くことができます. コメントは音に影響しません.
+d1 $ sound "glitch glitch:1 glitch:2 glitch:3" -- 後ろにもコメントできます
+
+
+-- -------------------------
+--    いろいろなパターン
+-- -------------------------
+
+-- " これはダブルクオーテーション
+-- これで囲われたものを「パターン」と呼びます
+-- パターンがsetcpsで指定されたテンポで繰り返される...というのがTidalCyclesの時間構造です
+
+-- paternを分割する
+
+d1 $ sound "bd*4"
+
+d1 $ sound "bd hh [sd arpy] hh"
+
+d1 $ sound "bd hh sd*2 hh"
+
+d2 $ sound "arpy*3"
+
+d1 $ sound "bd hh [sd,arpy] hh" -- []の中で、間に , （カンマ）が入ると、同時に鳴る！
+
+
+-- ~は休符です. チルダと読みます
+
+d1 $ s "bd [sd ~ sd] hh*4"
+
+
+d1 $ s "~ ~ ~ cp"
+
+-- 数サイクルに一回だけ呼ぶテクニック
+
+d1 $ sound "bd sd/4"
+
+-- サイクルごとに違うサンプルを呼び出す
+
+d1 $ s "bd <sd cp sd*2 cp*2 sd*4 sd*4>"
+
+d1 $ sound "bd [hh <~ bd>] sd hh"
+
+d1 $ sound "hardkick <hh*4 [~ hh] [~ hardkick?]> sd <hh*4 hh*8>"
+
+
+-- 脱線、エモいサンプル
+
+d1 $ sound "bev"
+
+panic -- やばい状態になってもスパッと音を止められます
+
+d1 $ sound "bev/4" -- 間引いた方がいいですね・・・
+
+d1 $ sometimes (ply 4) $ chop 16 $ sound "bev/2" -- 長いサンプルを料理する方法もたくさんあります. またいずれ・・・
+
+
+-- ----------------------------------------
+--         エフェクトを使ってみよう
+-- ----------------------------------------
+
+-- soundのあとに # を挟んで続くのが、エフェクトです（tidal用語ではControl）
+
+-- room: リバーブをかけて音を響かせます. 0.0~1.0でかかる量を調整します.
+-- sz: リバーブの広がりをコントロールします. これも0.0~1.0です
+
+d1 $ sound "bd hh sd hh" # room 0.5 # sz 0.75
+
+
+-- gain 音量を調整します. 基本的に1.0以下がいいです
+-- たりない！と思ったら1.1とか1.2も使いますが、ものによっては爆音になるので耳を気をつけてください
+
+d1 $ sound "bd hh sd hh" # gain 0.9 -- 何も書いてない時のデフォルトは1.0です
+
+
+-- n
+-- 再生するサンプルを指定します. sd:2と同じですね
+
+d1
+  $ s "peri*8" # n "0 1 2 3 4 5 6 7"
+
+-- 上のように、エフェクトの数字など、TidalCyclesのほとんどの数値はパターンにできる！
+
+d1 $ s "bd hh sd hh" # room "<0.0 0.9 0.0 0.5>/2"
+
+
+-- 再生速度
+
+d1 $ sound "arpy" # speed 2   -- ２倍の速度で再生=ピッチがオクターブ高くなる
+
+d1 $ sound "arpy" # speed 0.5 -- 半分の速度で再生=ピッチがオクターブ低くなる
+
+d1 $ sound "bd hh sd hh" # speed "-1" -- 逆再生! マイナスを使う時は""でパターンにするか()で囲みましょう
+
+d1 $ sound "bd hh sd hh" # speed "1 2 <1 -1> 0.5" -- パターンっていいな
+
+-- 再生速度その２、半音と全音
+
+d1 $ sound "arpy*4" # up "0 1 2 3" -- # up 1 で半音上になる！
+
+
+-- chooseでランダムにupの数値を拾ってくる例
+d1
+  $ sound "gtr*4"
+  # up (choose[0,2,3,5,7,10,-2,-4,14]) -- すき...
+  # room 0.3 # sz 0.7 # gain 0.8
+
+
+-- ----------------------------------------
+--   強力な"Function"
+-- ----------------------------------------
+
+-- いいパターンを組んでいいエフェクトをかけていい感じになったら、
+-- そこからさらに展開を作ったり、破壊したり、キャラ変したりできるのがFunctionの...TidalCyclesの醍醐味だと思ってます
+
+-- パターンを２倍の速度でループする
+d1
+  $ fast 2
+  $ sound "bd [hh bd?] sd hh"
+
+
+-- 確率的にエフェクトをかけたりする
+d1
+  $ sometimes (# speed 2)
+  $ sound "bd hh sd hh"
+
+-- sometimes, rarely, almostNever, often, almostAlways, Alwaysが使えます
+
+d1
+  $ sometimes (# speed "-1")
+  $ s "glitch*8"
+  # n "<0 1 2 3 4 5 6 7>"
+
+-- 確率を使った作例
+d1
+  $ rarely (ply 4)
+  $ sound "peri*8"
+  # n (run 7) -- 0から7まで並べたパターンを作る. "0 1 2 3 4 5 6 7" <-これと一緒です
+  # legato 1 -- サンプルの長さをいじる. 1にすると音が重ならなくなるので歯切れがよくなります
+
+-- sometimesBy: 確率を数値で指定できます.
+
+d1 $ sometimesBy 0.4 (# gain 1) $ sound "hh*16" # gain 0.85
+
+-- sometimesByとパターンを組み合わせることで、「soundパターンの後半だけたまに逆再生する」例
+d1
+  $ sometimesBy "0 0.25" (# speed "-1")
+  $ sound "peri [hh peri?] sd [hh peri*2?]"
+  # room 0.25 # speed "[1.0 1.5]*4"
+
+
+
+-- めちゃ複雑に見えても、中心はこの構造になっている場合がほとんどです
+d1
+  $ fast 2           -- function
+  $ s "bd hh sd hh"  --pattern
+  # room             -- effect
+
+
+-- 2サイクルに一回 rev でパターンを反対方向に再生する
+d1
+  $ every 2 rev
+  $ s "arpy arpy arpy arpy"
+  # up "0 2 4 6"
+
+
+-- --------------------------------------------------
+--   フルスクラッチ（何もないとこから書いてく）パフォーマンス
+-- --------------------------------------------------
+
+-- rand: 0.0~1.0の間のランダムな数値が得られます
+d1 $ sound "padlong" # speed rand # gain 0.8 
+
+
+-- whenmod: 8サイクルのうち6サイクルは普通に再生して、のこり2サイクルで # speed "-1"をかける
+-- ドラム・フィルなどに超便利です
+d2
+  $ whenmod 8 6 (# speed "-1")
+  $ s "peri*4" # shape 0.99 # gain 0.75
+
+-- 好きなパターン
+d3
+  $ every 2 (rev)
+  $ raerly (ply 4)
+  $ s "glitch*8" # n (run 8)
+
+
+d1 $ s "peri*2"
+
+d2
+  $ jux rev
+  $ rarely (ply 4)
+  $ s "glitch*8" # n (run 8)
+  # shape 0.99 # gain 0.7
+
+d3
+  $ rarely (|* speed 2)
+  $ often (|* speed 2)
+  $ sometimesBy "0.3" (|* speed 0.5)
+  $ sometimes (|* speed "-1")
+  $ degrade
+  $ s "arpy*16" # up (choose[0,2,3,5,7,8,10])
+  # room 0.25 # sz 0.95
+  # delay 0.5 # delayfb 0.75 # delaytime 0.13
+
+-- ソロで鳴らします
+
+solo 3
+
+-- ソロやめます
+
+unsolo 3
+
+
+d4
+  $ s "bass1" # legato 1
+
+d5
+  $ chop 32 $ rarely (ply 16)
+  $ s "diphone/2" # shape 0.5
+  # legto 1 # speed (rand + 0.5)
+
+-- ありがとうございました
+
+
+-- twitterの #つぶやきTidalCycles に、デフォルトサンプルだけで作った作例があります
+-- コピペしたら鳴らせるのでよかったらためしてみてください
+
+
+
+-- ------------------------------
+--  喋りそこねた、面白いテクニックなど
+-- ------------------------------
+
+-- 複数トラックを一斉に鳴らしたい時は、doの後に改行して、空白行をいれずに書いてみてください
+-- 一塊のブロックとして1発で複数トラックを鳴らせます
+
+do
+  d1 $ sound "bd hh sd hh"
+  d2 $ sound "bass1"
+  d3 $ sound "glitch*8" # n (run 8)
+
+-- 他にもstack[], randcat[]というテクニックででかい構造を扱うことができます
+
+
+
+-- ユークリッドシーケンス
+
+d1 $ sound "bd(3,8)"
+
+-- サンプル名の後に（）と数字二つで、ユークリッドの互助法を利用したリズム構築、ユークリッドシーケンスが使えます
+-- 二つの数字を書き換えるだけで面白いリズムが作れるので, 即興演奏では重宝してます
+
+d1 $ sound "cp(3,8) sd(5,8)"
+
+do
+  d1 $ sound "bd hh hh hh"
+  d2 $ sound "sd(5,8,2)" -- 三番目の数字を入れると、開始をずらせる
+
+do
+  d1 $ sound "bd hh hh hh"
+  d2 $ sound "sd(5,8,<0 2>)" -- ユークリッドシーケンスの中身をさらにパターンにする！
+
