@@ -1,0 +1,396 @@
+-- --------------------------------------------------
+-- C4R 電子楽器烏合の衆 2025/09/07
+-- --------------------------------------------------
+
+-- マイナス二つでcomment out
+
+-- コメントにすると実行されないので、演奏の切り替えに便利
+d1
+  -- $ sometimes (ply 8)
+  $ s "bd hh sd hh"
+
+d1 $ sound "bd hh sd hh"
+
+-- ブロックとブロックの間は一行あける
+d1 $ sound "bd*4"
+
+hush
+
+-- パターンのおさらい
+
+d1 $ sound "bd*2 hh:1*4 sd*3 hh*6"
+
+d1 $ sound "bd hh*4 bd"
+
+d2 $ s "sd sd"
+
+d3 $ s "arpy*4"
+
+d4 $ s ""
+
+-- サンプルを指定する
+
+d1 $ s "bd hh sd hh" # n 0
+
+-- サンプル指定を""でパターンにする
+d1
+  $ s "bd hh*4 sd hh"
+  # n "0 [0 1 2 3] 1 0"
+
+d1
+  $ s "bd*2 [hh bass2 ~ sd] [sd cp] hh*6"
+  # n "0 [0 1 2 3] [0 1] 0"
+
+-- "" これで囲んだものが「パターン」
+-- TidalCyclesはけっこうなんでもパターンとして書くことができる
+
+-- random
+d1 $ sound "bd? hh?0.88 sd?0.99 hh?0.33"
+
+
+-- --------------------------------------------------
+-- 色々なAudio Effect
+-- --------------------------------------------------
+
+d1
+  $ sound "bd hh sd hh"
+  # shape 0.85           -- shape distortion
+  # gain 0.8             -- audio level (1.0:default)
+  # room 0.5 # size 0.1  -- Room Reverb (0.0~1.0)
+  # delay 0.99 # delaytime 0.33 # delayfeedback 0.98 -- delay
+  # coarse 4             -- bit reduction
+
+
+-- low pass filter 
+d1 $ sound "bd hh sd hh" # lpf "8000 500 3000 300"
+
+
+-- エフェクトをパターンでかけてみよう
+d1
+  $ sound "glitch glitch*2 glitch glitch"
+  # n "0 [4 5] 2 3"
+  # shape "0.1 0.5 0.77 0.4"
+  # room 0.1 # size 0.1
+
+d2
+  $ sound "bd hh sd hh"
+  # n "0 [4 5] 2 3"
+  # shape 0.999
+  # gain 0.6
+
+
+-- --------------------------------------------------
+-- パターンを駆使してkickを作ろう
+-- --------------------------------------------------
+
+d1 $ sound "bd*4" -- basicな4つうち
+
+d1 $ sound "bd [bd bd?] [bd ~ ~ bd?] [~ bd?]" -- ランダムを取り入れる
+
+d1 $ sound "bd bd bd bd" -- 演奏の途中で[]や?でバリエーションを出す
+
+-- 激しいヤツ
+d1 $ sound "hardkick*4" # n 3 # shape 0.25
+
+
+-- テンポをかえる
+setcps 0.565
+
+setcps(130/60/4) -- BPM130に指定
+
+-- 一つのサイクルの中でテンポが変わる！
+d1
+  $ sound "glitch*8" # n "0 1 2 3 4 5 6 7"
+  # cps "0.5 0.65 0.7 0.5"
+
+-- サイクルおきにテンポが変わる！
+d1
+  $ sound "glitch*8" # n "0 1 2 3 4 5 6 7"
+  # cps "<0.5 0.65 0.7 0.25>"
+
+-- <> これで囲った要素はサイクルごとに切り替わっていく
+d1 $ sound "hardkick [hh hardkick?] cp hh"
+  # room "<0.0 0.1 0.5 0.6>" # sz 0.8
+
+-- もちろんsampleにも使える
+d2 $ sound "bd hh <sd cp> hh"
+
+-- <>を使ってkickのバリエーションを作る
+d1 $ sound "<bd bd*2 [bd ~ ~ bd] [bd*4]> ~ bd ~"
+
+-- #でsoundを指定することでサンプルを上書き
+d1
+  $ sound "<bd bd*2> ~ <bd bd*3 [bd ~ ~ bd]> ~"
+  -- # sound "hardkick"
+
+
+-- hihat
+d2
+  $ sound "hh*16" # gain "[1.0 0.8 0.95 <0.8 0.97>]*4"
+
+-- snare drum
+d3
+  $ s "~ [~ sd?] sd ~"
+  # room 0.3 # sz 0.7
+
+-- 好きなテクニック: いろんな種類の音がこちゃまぜになったパーカッションを、# nで賑やかにならす
+d4
+  $ sound "808*8"
+  # n "0 1 2 3 4 5 6 7"
+  # shape 0.95 # gain 0.6
+
+d1 $ sound "808bd:1*4"
+
+-- これすき
+d4
+  $ sound "feel*8"
+  # n "0 1 2 3 4 5 6 7"
+
+-- これもすき
+d4
+  $ sound "peri*8"
+  # n "0 1 2 3 4 5 6 7"
+
+-- めっちゃすき
+d4
+  $ sound "glitch*8"
+  # n "0 1 2 3 4 5 6 7"
+
+
+-- sampleをサイクルごとに切り替えていく
+d4
+  $ sound "<glitch*8 peri*8 feel*8 808*8>"
+  # n "0 1 2 3 4 5 6 7"
+
+d1 $ sound "808bd:1*4"
+
+d2 $ sound "808hc*16" # n "0 1 2 3"
+
+d3 $ sound "~ cp" # room 0.5 # size 0.8
+
+-- リズムを複雑にしてもよい
+d4
+  $ sound "<glitch*16 peri*8 feel*6 808*12>"
+  # n "0 1 2 3 4 5 6 7"
+
+d1 $ sound "bd*4" -- kickをいれておけばなんとかなる
+
+d2 $ sound "hh*4 hh*2 hh*4 hh*2"
+
+
+-- --------------------------------------------------
+-- melody向きのサンプル
+-- --------------------------------------------------
+
+-- arpy: n でピッチを選ぶことができるサンプル
+d1 $ sound "arpy*8" # n "0 1 3 4"
+
+-- gtr 好きなサンプル 音量注意
+d1 $ sound "gtr:0" # speed "-1"
+
+-- speedで再生速度を変化、ピッチが変わる. マイナスで逆再生
+d1 $ sound "gtr:0" # speed "1.5"
+
+-- up: 半音単位で音程をつける
+d1
+  $ sometimes (|*| speed "-1")
+  $ sound "gtr*4"
+  # up "<[0 2 5 7] [9 12 14 17]>"
+
+-- たまに逆再生！
+d1
+  $ sometimes (|*| speed "-1")
+  $ sound "gtr*4"
+  # up "<[0 2 5 7] [9 12 14 17]>"
+
+-- 同じ結果でも、別の書き方ができるのがTidalの面白いところ
+d1
+  $ sound "gtr*4"
+  # up (choose[0,2,5,7,12,9])
+  # speed (choose[1,-1])
+
+
+d1
+  $ sometimes (|*| speed 0.25)
+  $ often (|*| speed 2)
+  $ sound "ade"
+  # up (choose[0,2,3,5,7,-2,-4])
+  # n (choose[2,9])
+  # room 0.5 # sz 0.95 # gain 0.8
+
+-- 確率のコントロール
+-- sometimes < often < almostAlways < always
+-- sometimes > rarely > almostNever > Never
+
+
+-- --------------------------------------------------
+-- 色々なテクニック
+-- --------------------------------------------------
+
+-- # legatoでサンプルの長さをコントロールする
+-- # legato 1にすると、前の音と次の音が重ならなくなる
+d1
+  $ rarely (ply 8)
+  $ sound "feel*8" # n "0 1 2 3 4 5 6 7"
+  # legato 1
+
+-- legatoがあるとタイトな印象に
+d1
+  $ sound "808*8" # n (run 8)
+  # speed (choose[0.75, 1.25])
+  # legato 1
+
+-- 説明中に楽しくなって足したやつ
+d2
+  $ almostNever (|* speed "-1")
+  $ s "808bd:1*4"
+
+d3
+  $ sound "sid*4" # up (choose[0,2,3,5])
+  # n (choose[0,1,2,3,4,5,6,7,8])
+  # room 0.5 # sz 0.7
+
+
+-- run 8 = "0 1 2 3 4 5 6 7 8"を自動生成
+d1
+  $ sound "808*8"
+  # n (run 8)
+  # speed (choose[0.75, 1.25])
+  # legato 1
+
+d1
+  $ sound "808*8"
+  # n (run "<8 24 33 55>") -- パターンにすると面白い
+  # speed (choose[0.75, 1.25])
+  # legato 1
+
+
+-- --------------------------------------------------
+-- oscillator: あらゆる要素を揺らしたり変化させたりできる
+-- --------------------------------------------------
+
+d1
+  $ sound "glitch*8" # n (run 7)
+  # speed (saw) -- 0.0 ~ 1.0まで1サイクルで直線的にのぼっていく
+
+-- 0.5~4.0のレンジでのぼるように計算する
+d1
+  $ sound "glitch*8" # n (run 7)
+  # speed (saw * 3.5 + 0.5)
+
+-- 4サイクルかけてゆっくりと0.0~1.0へ直線的にのぼる
+d1
+  $ sound "hh*8"
+  # speed (slow 4 saw)
+
+-- 1サイクルに4回0.0~1.0へ直線的にのぼる
+d1
+  $ sound "hh*8"
+  # speed (fast 4 saw)
+
+
+-- 合わせ技
+d1
+  $ sound "hh*8"
+  # speed (slow 2 (saw * 0.35 + 0.5))
+
+-- sawの代わりに使える色々なoscillator
+-- isaw
+-- sine
+-- cosine
+-- tri
+-- square
+-- perlin : perlin noise
+-- rand
+
+d1
+  $ sound "hh*16"
+  # gain (rand) # room 0.5 # sz 0.7
+  # shape (rand * 0.5)
+
+
+-- 大きなあたいにも使える
+d3
+  $ sound "bass1:1*4"
+  # lpf (sine * 5000)
+  # resonance 0.3
+
+-- oscillatorを使った作例
+d3
+  $ fast 2
+  $ sound "bass1:2 bass1:1*4"
+  # lpf (fast "<3 5 7 11>" (cosine * "<5000 3000 2000 1500>"))
+  # lpq (rand * 0.5)
+  # legato (choose[1,2,3,0.5])
+
+d4 $ s "hardkick [~ hardkick?] hardkick ~ "
+
+d5 $ s "~ cp" # shape 0.5
+
+
+-- ply 繰り返す. グリッチーな音作りに便利
+d1
+  $ rarely (ply 3)
+  $ sound "bassfoo*8" # n (irand 4) # legato 1
+  # speed (choose[0.75, 1.25, 1.5, 2])
+
+
+-- --------------------------------------------------
+-- 発展トピック：長いサンプルを扱う
+-- --------------------------------------------------
+
+d1
+  $ sound "bev*32"
+  # legato 1 -- 4とかに伸ばすと面白い
+  # begin (slow 4 saw)
+  -- # speed (sine * 0.1 + 1.0) -- speedを揺らすと、壊れたテーププレイヤーの質感
+
+-- 指定したサイクル数にサンプルを引き延ばす
+d1
+  $ loopAt 1
+  $ sound "breaks165"
+
+d1
+  $ sound "breaks125*32" # legato 2.2
+  # begin (slow 1 saw)
+
+
+-- --------------------------------------------------
+-- 即興演奏でのライブの組み立て（実演）
+-- --------------------------------------------------
+
+d1
+  $ rarely (off 0.25 (|* speed 0.5))
+  $ sometimes (off (choose[0,0.25]) (|* speed 2))
+  $ sometimes (|* speed "-1")
+  $ sound (randcat["gtr*2"]) # up (choose[0,2,3,5,7,-2,-4,-5,12,14]) -- (irand 12)
+  # room 0.5 # sz 0.9
+  -- # accelerate (rand + 1.0)
+
+
+d2
+  $ s "808bd:1*4"
+
+d3
+  $ rarely (ply 4)
+  $ s "glitch*8" # n (run 8)
+  # shape 0.9 # gain 0.8
+
+
+d4 $ s "~ cp" # shape 0.9 # gain 0.87
+
+
+-- --------------------------------------------------
+-- Chordを扱う
+-- --------------------------------------------------
+d1
+  $ fast 2
+  $ sometimes (|* speed 2)
+  $ sound "arpy(5,8,<0 2>)"
+  # up "<c'min7'o c'min7>"
+
+d1
+  $ fast 2
+  $ sometimes (|* speed 2)
+  $ sound "midi"
+  # up "<c'min7'o c'min7>"
