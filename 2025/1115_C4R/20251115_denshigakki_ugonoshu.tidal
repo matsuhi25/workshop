@@ -1,0 +1,222 @@
+
+-- 2025/11/15 電子楽器烏合の衆 vol.3 @Channel for Rent
+-- Hiroki Matsui (@hiroki_mtplc)
+
+-- ========================================
+-- パターンおさらい
+
+-- サンプルを鳴らす
+d1 $ sound "bd*4"
+
+d2 $ sound "~ sd" -- ~は休符
+
+d3 $ sound "hh*16"
+
+d4 $ sound "less"
+
+d5 $ sound "kurt*3 kurt:2"
+
+
+-- ========================================
+-- 音を止める
+d1 silence
+
+d2 silence
+
+hush
+
+panic
+
+
+-- ========================================
+-- サンプルの変更
+d1 $ sound "glitch*4"
+
+d1 $ sound "glitch:0 glitch:1 glitch:2 glitch:3"
+
+-- または
+d1 $ sound "glitch*4" # n "0 1 2 3"
+
+-- ランダムで切り替える
+-- (irand 4)は0~3の整数をランダムでつくる
+d1
+  $ sound "glitch*4"
+  # n (irand 4)
+
+-- (run 8): 0から7までの並びを作る
+d1 $ sound "808*8"
+  # n (run 8)
+
+-- つまりこれと一緒
+d1 $ sound "808*8"
+  # n "0 1 2 3 4 5 6 7"
+
+-- 使えるサンプルのリストはここ
+-- SuperCollider -> File -> Open user support directory -> downloaded-quarks -> DirtSamples
+-- この中にオーディオファイルが入ったフォルダを追加すると、
+-- 自前のサンプルを使うことができる！(SuperColliderを一旦終了する必要がある)
+
+
+
+-- ========================================
+-- いろんなパターン作成テクニック
+-- ぜひいろいろ書き換えながら耳で聞いて効果を実験してみましょう
+
+
+-- []
+d1 $ sound "[bd bd*2] bd"
+
+d1 $ sound  "bd ~ bd bd bd ~ ~ ~" -- 上のやつはこれと同じ
+
+d1 $ sound "[bd [bd bd*2]] bd"
+
+d1 $ sound "bd [bd,sd]" -- ,で区切ると２つならせる
+
+
+-- <>
+d1 $ sound "hardkick <cp sd>"
+
+d2
+  $ sound "808*8"
+  # n ((run 4) + "<0 4>")
+
+
+-- Euclid Sequence
+
+d1 $ sound "bd(3,8)"
+
+d2 $ sound "hh(5,16)"
+
+d3 $ sound "~ ~ [cp cp*2] ~"
+
+d4 $ sound "less(3,8,2)"
+
+d5 $ sound "kurt(5,8,<1 2>)" # n (irand 4)
+
+
+
+
+-- ========================================
+-- メロディーやベース
+
+d1
+  $ sound "gtr*4"
+  # up "c e g b" -- 音名でサンプルの再生速度を指定
+
+d1
+  $ sound "gtr*4"
+  # up "c ef g bf" -- 音名でサンプルの再生速度を指定
+
+
+d1
+  $ sound "gtr*4"
+  # up "0 3 7 10" -- 数値（半音単位）でもOK
+
+d2
+  $ sound "less(3,8,<0 2>)"
+  # up (choose[0,2,3]) -- choose[] ,で区切った内容がランダムに選ばれる
+
+d1
+  $ up "0 3 7 10"
+  # sound (choose["gtr","ade"]) -- "gtr"と"ade"がランダムに選ばれる！
+
+
+-- polymeter
+-- 超重要テクニック
+d1
+  $ sound "gtr*4"
+  # up "{0 3 7 10 14 15}%4"
+
+d1
+  $ sound "gtr*4"
+  # up "{0 3 7 10 14 15}%4"
+  # room 0.5 # sz 0.5 -- reverb effect
+
+-- 音量をランダムにして強弱を作る
+d1
+  $ sound "gtr*4"
+  # up "{0 3 7 10 14 15}%4"
+  # room 0.5 # sz 0.5 -- reverb effect
+  # gain (choose[0.88,1.0])
+
+
+-- 時々逆再生
+d1
+  $ sometimes (|* speed "-1")
+  $ sound "gtr*4"
+  # up "{0 3 7 10 14 15}%4"
+  # room 0.5 # sz 0.5 -- reverb effect
+  # gain (choose[0.88,1.0])
+
+
+-- 音を左右に振って、片方だけパラーンを逆方向に進ませる
+d1
+  $ jux rev
+  -- $ sometimes (|* speed "-1") -- マイナスマイナスでコメントアウトできます.
+  $ sound "gtr*4"
+  # up "{0 3 7 10 14 15}%4"
+  # room 0.5 # sz 0.5 -- reverb effect
+  # gain (choose[0.88,1.0])
+
+
+
+-- ========================================
+-- do block
+
+-- 複数のブロックをまとめて実行
+do
+  setcps 0.7
+  d1
+    $ fast 2 $ brak $ sound "hardkick:1 less:2" 
+  d2
+    $ sometimes (fast 2)
+    $ sound "hh*8" # shape 0.5
+  d3
+    $ s "less/2"
+  d4
+    $ sound "~ 808*4" # n (irand 4)
+
+
+do
+  d1 silence
+  d4 silence
+
+-- 改行とスペースがが崩れるとうまくいかないので注意！
+
+do
+  d1
+    $ s "hardkick:1*4"
+  d2
+    $ s "~ less:2 ~ less:2" # shape 0.5
+  d3
+    $ sometimes (ply 4)
+    $ s "glitch*8" # n (run "<8 16>")
+    # speed (range 0.5 2 (slow 4 saw))
+
+
+d4 $ sound "less(5,16)" # up "<0 3 2 -2>"
+
+
+
+  
+-- ========================================
+-- 展開を作る
+
+-- 1~6サイクルは普通に演奏, 7,8サイクルだけHigh Pass Filterをかける
+do
+  d1
+    $ whenmod 8 6 (# hpf "800")
+    $ sound "hardkick:1*4"
+  d2
+    $ sound "~ cp" # shape 0.97 # gain 0.7
+
+
+-- すごいglitchハイハット
+d3
+  $ whenmod 16 14 (ply "<2 4>")
+  $ rarely (ply 4)
+  $ sound "linnhats*8 linnhats*4"
+  # n (irand 8)
+  # legato 1 -- legato 1とすると前の音と次の音が重ならない. めっちゃよく使います
+
+
