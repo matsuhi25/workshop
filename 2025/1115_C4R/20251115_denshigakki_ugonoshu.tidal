@@ -35,21 +35,29 @@ d1 $ sound "glitch*4"
 d1 $ sound "glitch:0 glitch:1 glitch:2 glitch:3"
 
 -- または
-d1 $ sound "glitch*4" # n "0 1 2 3"
+d1 sound "glitch*4" # n "0 1 2 3"
+
 
 -- ランダムで切り替える
 -- (irand 4)は0~3の整数をランダムでつくる
 d1
-  $ sound "glitch*4"
+  $ sound "glitch*16"
   # n (irand 4)
 
 -- (run 8): 0から7までの並びを作る
-d1 $ sound "808*8"
+d1
+  $ sound "808*8"
   # n (run 8)
 
 -- つまりこれと一緒
-d1 $ sound "808*8"
+d1 $ sound "peri*8"
   # n "0 1 2 3 4 5 6 7"
+
+d1
+  $ rarely (ply 4)
+  $ sound "amencutup*4 peri*4"
+  # n (run "<8 16 32 24>")
+
 
 -- 使えるサンプルのリストはここ
 -- SuperCollider -> File -> Open user support directory -> downloaded-quarks -> DirtSamples
@@ -72,6 +80,9 @@ d1 $ sound "[bd [bd bd*2]] bd"
 
 d1 $ sound "bd [bd,sd]" -- ,で区切ると２つならせる
 
+-- ?を打つとランダムで再生されたりされなかったりする
+d1 $ sound "bd [hh*2 bd?] sd [hh hh bd? hh]"
+
 
 -- <>
 d1 $ sound "hardkick <cp sd>"
@@ -80,20 +91,41 @@ d2
   $ sound "808*8"
   # n ((run 4) + "<0 4>")
 
+d1 $ sound "arpy*4" # n ((run 4) + "<0 4>")
+
+-- リズムを組む時にも便利
+d1 $ sound "peri <hh [hh peri?]> cp hh"
+
 
 -- Euclid Sequence
+-- ごく短いタイピングで有機的なリズムを生み出せる
+d1 $ sound "casio casio:1 casio:1 casio:1"
 
+d2 $ sound "bd(3,8)"
+
+d3 $ sound "hh(5,16)"
+
+d4 $ sound "~ ~ [cp cp*2] ~"
+
+d5 $ sound "less(3,8,2)"
+
+-- 三番目の数字を入れるとオフセット
+d6
+  $ sound "kurt(5,8,<0 2>)"
+  # n (irand 4)
+
+
+-- A.これは
 d1 $ sound "bd(3,8)"
 
-d2 $ sound "hh(5,16)"
+-- B.こうだが
+d1 $ sound "bd ~ ~ bd ~ ~ bd ~"
 
-d3 $ sound "~ ~ [cp cp*2] ~"
+-- C.これは
+d1 $ sound "bd(3,8,1)"
 
-d4 $ sound "less(3,8,2)"
-
-d5 $ sound "kurt(5,8,<1 2>)" # n (irand 4)
-
-
+-- D.こうなる(B.が左に一つずれている)
+d1 $ sound "~ ~ bd ~ ~ bd ~ bd"
 
 
 -- ========================================
@@ -103,53 +135,150 @@ d1
   $ sound "gtr*4"
   # up "c e g b" -- 音名でサンプルの再生速度を指定
 
+hush
+
 d1
   $ sound "gtr*4"
-  # up "c ef g bf" -- 音名でサンプルの再生速度を指定
+  # up "c ef g bf" -- fをつけるとフラット, sをつけるとシャープ
 
+-- 和音
+d1
+  $ sound "gtr*4"
+  # up "[c, ef, g, bf]" -- ,で区切ってるので同時になる. つまり和音
 
 d1
   $ sound "gtr*4"
   # up "0 3 7 10" -- 数値（半音単位）でもOK
 
 d2
-  $ sound "less(3,8,<0 2>)"
+  $ sound "gtr(3,8,<0 2>)"
   # up (choose[0,2,3]) -- choose[] ,で区切った内容がランダムに選ばれる
+
+d2
+  $ sound "gtr(3,8,<0 2>)"
+  # up (irand 3) -- irand
+
+d2
+  $ fast 2 $ sound "gtr(5,8,<0 2>)"
+  # up (irand 12) -- choose[] ,で区切った内容がランダムに選ばれる
 
 d1
   $ up "0 3 7 10"
   # sound (choose["gtr","ade"]) -- "gtr"と"ade"がランダムに選ばれる！
+  # pan rand
 
+-- randは0.0~1.0のランダムな数値を生み出す"オシレーター"
+-- randのほかにも... saw, isaw, sine, cosine, tri, square, perlin
+d1
+  $ sound "hh*8"
+  # pan cosine
+
+d1 $ sound "arpy*8" # speed (0.5 + rand) -- 0.5 ~ 1.5の間でランダム
+
+d1 $ sound "arpy*8" # speed (0.5 + tri) -- 0.5 ~ 1.5の間を三角波で移動
+
+d1 $ sound "arpy*8" # pan square # speed (choose[2,4])
+
+d1 $ sound "arpy*16" # speed (1 + perlin)
+
+-- 8サイクルで一周する
+d1
+  $ sound "arpy*8"
+  # speed (1.0 + (slow 8 tri))
+
+-- 8サイクルで0.0~1.0まで直線的に移動
+d1
+  $ sound "peri*8" # n (run 8)
+  # gain (slow 8 saw)
+
+-- オシレーター同士を掛け合わせる
+d1
+  $ sound "hh*8"
+  # speed ((slow 3 tri) * (slow 5 cosine) * (slow 2 saw) * (fast 3 tri) + 1)
+
+d1
+  $ sound "bass1:1(5,8)" # up (choose[0,2,3,5])
+  # pan ((slow 3 tri) * (slow 5 cosine) * (slow 2 saw) * (fast 3 tri) + 1)
+
+-- 周期を早める
+d1
+  $ sound "arpy*16"
+  # speed ((fast 9 tri) + 1)
+
+d1
+  $ sound "amencutup*16"
+  # n (run "<8 24 33 55>")
+  # gain (fast 7 (range 0.5 1.0 tri))
+
+d1
+  $ sound "amencutup*16"
+  # n (run "<8 24 33 55>")
+  # gain (fast "<7 12 13 9>" (range 0.5 1.0 tri))
+
+d1
+  $ juxBy perlin rev
+  $ sound "amencutup*16"
+  # n (run "<8 24 33 55>")
+  # gain (fast "<7 12 13 9>" (range 0.5 1.0 tri))
+  # shape 0.5
+
+d2
+  $ fast 2 $ brak $ sound "gabba [cp gabba?]"
+
+
+setcps (130/60/4)
+
+
+-- メロディーの話をしようとしていたのでした（脱線）
 
 -- polymeter
 -- 超重要テクニック
 d1
   $ sound "gtr*4"
-  # up "{0 3 7 10 14 15}%4"
+  # up "{0 3 7 10 14 15 10 }%4"
 
+-- せっかくなのでビートも・・・
+d2
+  $ sound "bd [hh bd?] sd hh" # lpf 4000 # gain 1.1
+  # delay 0.25 # delaytime (3/16) # delayfb 0.8
+
+-- 基本ピッチを作るpolymeterとオクターブあげたり下げたりするpolymeterを足し合わせる
+d1
+  $ sound "gtr*4"
+  # up ("{0 3 7 10 14 15 10 }%4" + "{0 0 <12 -12>}%4")
+
+-- reverb effect
 d1
   $ sound "gtr*4"
   # up "{0 3 7 10 14 15}%4"
-  # room 0.5 # sz 0.5 -- reverb effect
+  # room 0.5 # sz 0.5
 
 -- 音量をランダムにして強弱を作る
 d1
   $ sound "gtr*4"
   # up "{0 3 7 10 14 15}%4"
-  # room 0.5 # sz 0.5 -- reverb effect
+  # room 0.5 # sz 0.5
   # gain (choose[0.88,1.0])
 
-
--- 時々逆再生
+-- 微妙にピッチを揺らす. 古いテープの質感
 d1
-  $ sometimes (|* speed "-1")
   $ sound "gtr*4"
   # up "{0 3 7 10 14 15}%4"
   # room 0.5 # sz 0.5 -- reverb effect
   # gain (choose[0.88,1.0])
+  # speed (range 1.0 1.02 (slow 2 sine))
+
+-- 時々サンプルを逆再生する
+d1
+  $ sometimes (|*| speed "-1")
+  $ sound "gtr*4"
+  # up "{0 3 7 10 14 15}%4"
+  # room 0.5 # sz 0.5 -- reverb effect
+  # gain 0.58
 
 
--- 音を左右に振って、片方だけパラーンを逆方向に進ませる
+-- jux: 音を左右に振って、片方だけに指定したファンクションをかける
+-- rev: パターンを逆向きに演奏する
 d1
   $ jux rev
   -- $ sometimes (|* speed "-1") -- マイナスマイナスでコメントアウトできます.
@@ -159,13 +288,12 @@ d1
   # gain (choose[0.88,1.0])
 
 
-
 -- ========================================
 -- do block
 
 -- 複数のブロックをまとめて実行
 do
-  setcps 0.7
+  setCycle 0
   d1
     $ fast 2 $ brak $ sound "hardkick:1 less:2" 
   d2
@@ -176,12 +304,28 @@ do
   d4
     $ sound "~ 808*4" # n (irand 4)
 
+-- setCycle x: 強制的にxサイクル目から再生する
+-- これが使えるとレコーディングとかで便利です（最近初めて知った...）
 
+-- stackを使うことで複数のトラックをひとまとめにできる
+-- エフェクトを全体にかけたい時など便利
+d1
+  -- $ sometimes (|* speed "-1")
+  $ sometimes (ply 4)
+  $ stack[
+  sound "bd*4",
+  sound "hh*8",
+  fast 2 $ sound "cp(<5 3>,8,<0 2 1>)",
+  sound "bass1"
+          ] # room 0.5 # sz 0.2
+
+-- doで特定のトラックをまとめて消す
 do
   d1 silence
   d4 silence
 
--- 改行とスペースがが崩れるとうまくいかないので注意！
+
+-- !!: doは改行とスペースがが崩れるとうまくいかないので注意！
 
 do
   d1
@@ -193,10 +337,67 @@ do
     $ s "glitch*8" # n (run "<8 16>")
     # speed (range 0.5 2 (slow 4 saw))
 
-
 d4 $ sound "less(5,16)" # up "<0 3 2 -2>"
 
 
+-- 同じ変数でパラメーターをコントロールする
+do
+  let gain_patt = "1.0 0.85 0.95 0.8"
+  d1
+    $ sound "bd [~ bd?] ~ [~ bd?]"
+    # gain 1
+  d2
+    $ sound "hh*8" # gain (choose[1.0,0.9])
+    # gain gain_patt # speed gain_patt
+  d3
+    $ sound "~ cp"
+    # gain gain_patt
+
+
+-- 同じオシレーターでパラメーターをコントロールする
+do
+  let gain_patt = (slow 2 isaw)
+  d1
+    $ sound "bd [~ bd?] ~ [~ bd?]"
+    # gain 1
+  d2
+    $ sound "hh*8" # gain (choose[1.0,0.9])
+    # gain gain_patt # speed gain_patt
+  d3
+    $ sound "~ cp"
+    # gain gain_patt
+
+
+-- リストを使ってトラックごとの音量をコントロールする
+do
+  let mix = [1,1,1]
+  d1
+    $ sound "bd*4"
+    # gain (mix !! 0)
+  d2
+    $ sound "hh*8" # gain (choose[1.0,0.9])
+    # gain (mix !! 1)
+  d3
+    $ sound "~ cp"
+    # gain (mix !! 2)
+
+
+-- リストを使ってトラックごとの音量とspeedをコントロールする
+do
+  let mix = [1,1,1]
+  let s_mix = [1, 0.5, 1]
+  d1
+    $ sound "bd*4"
+    # gain (mix !! 0)
+    # speed (s_mix !! 0)
+  d2
+    $ sound "hh*8" # gain (choose[1.0,0.9])
+    # gain (mix !! 1)
+    # speed (s_mix !! 1)
+  d3
+    $ sound "~ cp"
+    # gain (mix !! 2)
+    # speed (s_mix !! 2)
 
   
 -- ========================================
@@ -205,18 +406,75 @@ d4 $ sound "less(5,16)" # up "<0 3 2 -2>"
 -- 1~6サイクルは普通に演奏, 7,8サイクルだけHigh Pass Filterをかける
 do
   d1
-    $ whenmod 8 6 (# hpf "800")
+    $ whenmod 8 6 (# hpf "800") -- high pass filterが7,8 cycleだけかかる
+    $ whenmod 16 14 (|* speed "-1") -- 15 16 cycleだけ逆再生
     $ sound "hardkick:1*4"
   d2
     $ sound "~ cp" # shape 0.97 # gain 0.7
+  d3
+    $ whenmod 8 6 (|* speed 2)
+    $ sound "bass1:1*4"
+    # up "{0 2 3 7}%4" # legato 1
+
+d1
+  $ every 4 (rev)
+  $ sound "arpy*4" # n "0 1 2 3"
+
+d1
+  $ whenmod 4 3 (rev)
+  $ sound "arpy*4" # n "0 1 2 3"
 
 
+-- 最近の発明(?)
 -- すごいglitchハイハット
 d3
   $ whenmod 16 14 (ply "<2 4>")
   $ rarely (ply 4)
   $ sound "linnhats*8 linnhats*4"
-  # n (irand 8)
+  # n (irand 6)
   # legato 1 -- legato 1とすると前の音と次の音が重ならない. めっちゃよく使います
+
+-- 確率の指定
+-- always, almostAlways, often, sometimes, rarely, almostNever, never
+
+d1 $ sound "<gabba*2 gabba> ~ ~ ~ ~ ~ ~ ~"
+
+d2
+  -- $ rarely (fast 2)
+  $ sometimes (off (choose[1/16,3/16,3,8]) (|* gain 0.95))
+  $ sound "~ 808sd:1" # shape 0.5 # room 0.5 # sz 0.3
+
+d3
+  $ whenmod 16 14 (ply "<2 4>")
+  $ rarely (ply 4)
+  $ sound "linnhats*8 linnhats*4"
+  # n (irand 6)
+  # legato 1
+
+-- |*|  randで作ったspeedの数値に、0.5をかける
+d4
+  $ sometimes (|*| speed 0.5)
+  $ s "padlong"
+  # gain 0.8 # speed (range 0.5 4 rand)
+
+-- chooseで選ばれたupの数値に、24を足す
+d4
+  $ sometimes (|+| up 24)
+  $ sound "sine*4"
+  # up (choose[0,2,4,5])
+
+
+-- off: 作ったパターンに対して、指定サイクルずらした別のパターンを重ねる
+d1
+  $ off (choose[1/16,3/16,1/8]) (# sound "cp")
+  $ sound "bd [~ bd?] bd ~"
+
+
+d1
+  $ sometimes (# sound "808oh")
+  $ off (choose[0.25,0.125]) (# sound "linnhats")
+  $ sound "kurt(3,8) kurt(3,8)" 
+
+
 
 
