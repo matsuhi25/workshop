@@ -1,0 +1,18 @@
+
+setcps (142/60/4)
+
+
+d1
+  $ sometimes (fast 2)
+  $ scramble 4
+  $ off 0.125 (# s "hh")
+  $ sound "bd*4"
+  # room 0.25 # sz 0.5
+
+setcps 0.5
+
+d2
+  $ chunk 4 (hurry 2)
+  $ sound "~ sd ~ sd"
+
+
